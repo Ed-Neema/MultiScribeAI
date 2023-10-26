@@ -46,20 +46,19 @@ const ConversationPage = () => {
 }
              */
             setMessages((current) => [...current, userMessage, response.data]);
-            console.log(response.data)
+            
 
             form.reset();
         } catch (error: any) {
             if (error?.response?.status === 403) {
                 proModal.onOpen();
             } else {
-                toast.error("Something went wrong.");
+                toast.error("Something went wrong:", error.message);
             }
         } finally {
             router.refresh();
         }
-        console.log(values)
-        console.log(messages)
+        
     }
     return (
         <div>
