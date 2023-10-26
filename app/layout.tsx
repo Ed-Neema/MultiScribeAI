@@ -11,6 +11,9 @@ const barlow = Barlow({
   display: 'swap',
 })
 export const metadata: Metadata = {
+  icons: {
+    icon: '/faviconLogo.ico',
+  },
   title: 'MultiScribeAI',
   description: 'AI Chatbot',
 }
