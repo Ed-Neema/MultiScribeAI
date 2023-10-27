@@ -4,6 +4,8 @@ import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
+
+export const runtime = "edge"
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
