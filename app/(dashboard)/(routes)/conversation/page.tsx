@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { cn } from "@/lib/utils";
 import { Empty } from "@/components/Empty";
@@ -33,11 +33,15 @@ const ConversationPage = () => {
     const isLoading = form.formState.isSubmitting;//loading state
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
-            
+
             const userMessage: ChatCompletionMessageParam = { role: "user", content: values.prompt };
             const newMessages = [...messages, userMessage];
 
-            const response = await axios.post('/api/conversation', { messages: newMessages });
+            const response = await axios.post('/api/conversation', { messages: newMessages },
+                 {
+                    responseType: 'text', // Ensure response type is text
+                }
+            );
             /**
              * the response looks like this
              * {
@@ -45,8 +49,23 @@ const ConversationPage = () => {
     "content": "The perimeter of a triangle is the sum of the lengths of all three sides of the triangle. To calculate the perimeter, you need to know the lengths of the triangle's sides.\n\nLet's assume the lengths of the three sides are denoted as a, b, and c, with a being the length of side opposite to angle A, b being the length of side opposite to angle B, and c being the length of side opposite to angle C.\n\nThe formula to calculate the perimeter of a triangle is:\nPerimeter = a + b + c\n\nUsing this formula, you can calculate the perimeter of any triangle by simply adding up the lengths of its three sides.\n\nLet's look at an example:\nSuppose you have a triangle with side lengths a = 8 units, b = 5 units, and c = 7 units.\n\nPerimeter = 8 + 5 + 7 = 20 units\n\nSo, in this example, the perimeter of the triangle is 20 units."
 }
              */
-            setMessages((current) => [...current, userMessage, response.data]);
-            
+            // { role: 'user', content: 'Perimeter of a triangle' },
+
+            setMessages((current) => [...current, userMessage, {role: "assistant", content: response.data}]);
+            // Handle streaming data and update messages
+            // console.log(response.data)
+            // console.log(messages)
+            // const reader = response.data.getReader();
+            // let message = '';
+            // while (true) {
+            //     const { done, value } = await reader.read();
+            //     if (done) {
+            //         break;
+            //     }
+            //     message += value;
+            //     setMessages((current) => [...current, { role: "assistant", content: message }]);
+            // }         
+
 
             form.reset();
         } catch (error: any) {
@@ -59,7 +78,7 @@ const ConversationPage = () => {
         } finally {
             router.refresh();
         }
-        
+
     }
     return (
         <div>
@@ -116,9 +135,10 @@ const ConversationPage = () => {
                     <Empty label="No conversation started." />
                 )}
                 <div className="flex flex-col-reverse gap-y-4">
-                    {messages.map((message) => (
+                    {messages.map((message, index) => (
+
                         <div
-                            key={message.content}
+                            key={index}
                             className={cn(
                                 "p-8 w-full flex items-start gap-x-8 rounded-lg",
                                 message.role === "user" ? "bg-white border border-black/10" : "bg-muted",

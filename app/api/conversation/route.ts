@@ -1,12 +1,18 @@
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+
+import { Configuration, OpenAIApi } from "openai-edge";
+// import { OpenAIStream, StreamingTextResponse } from "openai-edge";
 import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
-export const runtime = "edge";
-const openai = new OpenAI({
+import { generateCompletionStream } from "./openai";
+import { StreamingTextResponse } from "ai";
+const config = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const openai = new OpenAIApi(config);
+
+
 export async function POST(req: Request): Promise<NextResponse> {
   try {
     const { userId } = auth();
@@ -17,7 +23,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!openai.apiKey) {
+    if (!config.apiKey) {
       return new NextResponse("OpenAI API Key not configured.", {
         status: 500,
       });
@@ -40,17 +46,16 @@ export async function POST(req: Request): Promise<NextResponse> {
       );
     }
 
-
-    const response = await openai.chat.completions.create({
-      messages,
-      model: "gpt-3.5-turbo",
-    });
+    // Generate the OpenAI completion stream
+    const stream = await generateCompletionStream(messages);
     // increment api limit if not pro
     if (!isPro) {
       await incrementApiLimit();
     }
-
-    return NextResponse.json(response.choices[0].message);
+    // Send the stream to the client
+    return stream;
+    // console.log("from server", completion);
+    // return NextResponse.json(completion);
   } catch (error) {
     console.log("[CONVERSATION_ERROR]: ", error);
     return new NextResponse("Internal Error", { status: 500 });
