@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import Replicate from "replicate"
 import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
-export const runtime = "edge";
+
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || "",
 });

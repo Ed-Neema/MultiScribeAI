@@ -7,10 +7,7 @@ import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
 import { generateCompletionStream } from "./openai";
 import { StreamingTextResponse } from "ai";
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(config);
+
 
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -23,11 +20,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!config.apiKey) {
-      return new NextResponse("OpenAI API Key not configured.", {
-        status: 500,
-      });
-    }
+   
     if (!messages) {
       return new NextResponse("Messages are required", { status: 400 });
     }

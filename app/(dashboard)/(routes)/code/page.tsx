@@ -37,7 +37,7 @@ const CodePage = () => {
             const newMessages = [...messages, userMessage];
 
             const response = await axios.post('/api/code', { messages: newMessages });
-            setMessages((current) => [...current, userMessage, response.data]);
+            setMessages((current) => [...current, userMessage, { role: "assistant", content: response.data }]);
 
             form.reset();
         } catch (error: any) {

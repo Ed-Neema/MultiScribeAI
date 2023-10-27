@@ -4,8 +4,9 @@ import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
+import { generateCompletionStream } from "./openai";
 
-export const runtime = "edge"
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -26,11 +27,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!openai.apiKey) {
-      return new NextResponse("OpenAI API Key not configured.", {
-        status: 500,
-      });
-    }
+
     if (!messages) {
       return new NextResponse("Messages are required", { status: 400 });
     }
@@ -41,15 +38,21 @@ export async function POST(req: Request): Promise<NextResponse> {
       return new NextResponse("Free trial has expired. Upgrade to pro", { status: 403 });
     }
 
-    const response = await openai.chat.completions.create({
-      messages: [instructionMessage, ...messages],
-      model: "gpt-3.5-turbo",
-    });
+   
+      const stream = await generateCompletionStream([
+        instructionMessage,
+        ...messages,
+      ]);
+    // const response = await openai.chat.completions.create({
+    //   messages: [instructionMessage, ...messages],
+    //   model: "gpt-3.5-turbo",
+    // });
     // increment api limit if not pro
     if (!isPro) {
       await incrementApiLimit();
     }
-    return NextResponse.json(response.choices[0].message);
+    // return NextResponse.json(response.choices[0].message);
+     return stream;
   } catch (error) {
     console.log("[CODE_ERROR]: ", error);
     return new NextResponse("Internal Error", { status: 500 });

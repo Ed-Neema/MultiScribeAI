@@ -51,7 +51,7 @@ const ImagePage = () => {
         } finally {
             router.refresh();
         }
-       
+
     }
     return (
         <div>
